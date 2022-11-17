@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from apps import home, landSurfaceTemperature, upload,nightlights,atmospheric,waterQuality  # import your app modules here
+import json
 
 st.set_page_config(page_title="Streamlit Geospatial", layout="wide")
 
@@ -14,6 +15,13 @@ apps = [
     {"func": atmospheric.app, "title": "Atmospheric Quality", "icon": "globe2"},
     {"func": waterQuality.app, "title": "Water Quality", "icon": "water"},
 ]
+
+newDic={}
+for key in st.secrets['eecredentials']:
+    newDic[key.replace("eecredentials_","")] = st.secrets['eecredentials'][key]
+#json_object = json.dumps(newDic, indent = 4)   
+with open('credentials.json', 'w') as outfile:
+    json.dump(newDic, outfile)
 
 titles = [app["title"] for app in apps]
 titles_lower = [title.lower() for title in titles]
