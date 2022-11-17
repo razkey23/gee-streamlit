@@ -16,3 +16,4 @@ port = $PORT\n\
 enableCORS = false\n\
 \n\
 " > ~/.streamlit/config.toml
+python tomlScript.py 

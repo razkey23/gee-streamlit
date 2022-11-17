@@ -4,9 +4,11 @@ __pycache__/
 *$py.class
 private/
 .vscode/
-
+*.json
 # C extensions
 *.so
+*.toml
+*.Identifier
 
 # Distribution / packaging
 .Python

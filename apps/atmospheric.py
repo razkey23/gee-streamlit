@@ -3,7 +3,7 @@ import leafmap.foliumap as leafmap
 import ee
 
 def app():
-    st.title("Home")
+    st.title("Atmospheric Quality")
 
     st.markdown(
     """

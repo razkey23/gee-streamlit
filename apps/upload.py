@@ -26,6 +26,7 @@ def app():
     st.title("Upload Vector Data")
 
     row1_col1, row1_col2 = st.columns([2, 1])
+    print(row1_col1,row1_col2)
     width = 950
     height = 600
 
@@ -36,7 +37,9 @@ def app():
         )
 
         if backend == "folium":
+            #import folium 
             import leafmap.foliumap as leafmap
+            #import leafmap.foliumap as leafmap
         elif backend == "kepler.gl":
             import leafmap.kepler as leafmap
         elif backend == "pydeck":
@@ -78,20 +81,26 @@ def app():
                             random_column = st.selectbox(
                                 "Select a column to apply random colors", column_names
                             )
-
+                  
+                    
                     m = leafmap.Map(center=(40, -100))
                     # m = leafmap.Map(center=(lat, lon))
                     m.add_gdf(gdf, random_color_column=random_column)
                     st.pydeck_chart(m)
 
                 else:
-                    m = leafmap.Map(center=(lat, lon), draw_export=True)
-                    m.add_gdf(gdf, layer_name=layer_name)
-                    if backend == "folium":
+                    if backend=="folium":
+                        m = leafmap.Map(center=(40, -100),width='30%',draw_export=True)
+                        m.add_gdf(gdf, layer_name=layer_name)
                         m.zoom_to_gdf(gdf)
-                    m.to_streamlit(width=width, height=height)
+                    else:
+                        m = leafmap.Map(center=(lat, lon), draw_export=True)
+                        m.add_gdf(gdf, layer_name=layer_name)
+                   
+                    m.to_streamlit(height=height)
 
         else:
             with row1_col1:
+                print('heeere')
                 m = leafmap.Map()
                 st.pydeck_chart(m)

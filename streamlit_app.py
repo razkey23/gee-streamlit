@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from apps import home, heatmap, upload  # import your app modules here
+from apps import home, landSurfaceTemperature, upload,nightlights,atmospheric,waterQuality  # import your app modules here
 
 st.set_page_config(page_title="Streamlit Geospatial", layout="wide")
 
@@ -9,8 +9,10 @@ st.set_page_config(page_title="Streamlit Geospatial", layout="wide")
 
 apps = [
     {"func": home.app, "title": "Home", "icon": "house"},
-    {"func": heatmap.app, "title": "Heatmap", "icon": "map"},
-    {"func": upload.app, "title": "Upload", "icon": "cloud-upload"},
+    {"func": landSurfaceTemperature.app, "title": "Land Surface Temperature", "icon": "map"},
+    {"func": nightlights.app, "title": "Nightlight Activity", "icon": "lamp-fill"},
+    {"func": atmospheric.app, "title": "Atmospheric Quality", "icon": "globe2"},
+    {"func": waterQuality.app, "title": "Water Quality", "icon": "water"},
 ]
 
 titles = [app["title"] for app in apps]
@@ -24,6 +26,23 @@ if "page" in params:
 else:
     default_index = 0
 
+
+
+
+
+
+
+
+
+# Used to hide hamburger Menu
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
 with st.sidebar:
     selected = option_menu(
         "Main Menu",
@@ -33,17 +52,26 @@ with st.sidebar:
         default_index=default_index,
     )
 
-    st.sidebar.title("About")
-    st.sidebar.info(
+    
+    
+     
+    st.markdown( 
         """
-        This web [app](https://share.streamlit.io/giswqs/streamlit-template) is maintained by [Qiusheng Wu](https://wetlands.io). You can follow me on social media:
-            [GitHub](https://github.com/giswqs) | [Twitter](https://twitter.com/giswqs) | [YouTube](https://www.youtube.com/c/QiushengWu) | [LinkedIn](https://www.linkedin.com/in/qiushengwu).
-        
-        Source code: <https://github.com/giswqs/streamlit-template>
+            <div style="bottom:-500px; position:absolute;">
+                <h3 style="margin-top:0; text-align:center;">Economy bY spacE (EYE)<h3>
+                <img src="https://i.imgur.com/x9fJelE.png" width="100%" style="margin-top:0; position:absolute;"/>
+                <p style="margin-top:120px; font-size:70%">
+                Marie Skłodowska-Curie Actions (MSCA)  Research and Innovation Staff Exchange (RISE) H2020-MSCA-RISE-2020 G.A. 101007638
+                </p>
+                <!-- 
+                <img src="https://i.imgur.com/yEF6GB3.png" width="100%" style="bottom:0px; position:relative;"/>
+                -->
+                
+            </div>
+        """
+    ,unsafe_allow_html=True)
+   
 
-        More menu icons: <https://icons.getbootstrap.com>
-    """
-    )
 
 for app in apps:
     if app["title"] == selected:
