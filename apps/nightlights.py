@@ -82,6 +82,7 @@ def app():
     )
     
     serviceAccount = "earthenginealma@earth-engine-project-368208.iam.gserviceaccount.com"
+
     credentials = ee.ServiceAccountCredentials(serviceAccount,'credentials.json')
     #credentials = ee.ServiceAccountCredentials(serviceAccount, 'earth-engine-project-368208-162407f3fd49.json')
     ee.Initialize(credentials)
