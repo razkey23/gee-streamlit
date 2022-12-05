@@ -97,7 +97,7 @@ def app():
                         #dataFrame = dataFrame.set_index('date')
                         csv = convert_df(dataframe)
                         #download_button_str = download_button.download_button(csv,"file.csv","Press To Download")
-                        st.markdown(download_button_str, unsafe_allow_html=True)
+                        #st.markdown(download_button_str, unsafe_allow_html=True)
                         
                         with row1_col1:
                             st.plotly_chart(plot)

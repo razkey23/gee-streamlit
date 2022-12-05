@@ -17,8 +17,6 @@ metrics=         { "L3_SO2" : {        "min": 0.0,        "max": 0.0005,        
 
 
 
-
-
 def mapVisualization(eegeom,start_year,start_month,end_year,end_month,frequency='Weekly',metric='L3_NO2'):
     '''
         Returns a folium map 
