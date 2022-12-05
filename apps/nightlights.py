@@ -9,52 +9,8 @@ import os
 import json
 import calendar
 import pandas as pd
-
-
-def getGeometry(data):
-  oldcoords = data['features'][0]['geometry']['coordinates']
-  coords = [[[coord[0],coord[1]] for coord in oldcoords[0]]]
-  shapeType = data['features'][0]['geometry']['type']
-  if shapeType == 'Polygon':
-    try:
-      eegeometry = ee.Geometry.Polygon(coords)
-    except:
-      return None
-  elif shapeType =='MultiPolygon':
-    try:
-      eegeometry = ee.Geometry.MultiPolygon(coords)
-    except:
-      return None
-  return eegeometry
-
-
-def save_uploaded_file(file_content, file_name):
-    """
-    Save the uploaded file to a temporary directory
-    """
-    import tempfile
-    import os
-    import uuid
-
-    _, file_extension = os.path.splitext(file_name)
-    file_id = str(uuid.uuid4())
-    file_path = os.path.join(tempfile.gettempdir(), f"{file_id}{file_extension}")
-
-    with open(file_path, "wb") as file:
-        file.write(file_content.getbuffer())
-
-    return file_path
-
-def inBetween(startDate,endDate):
-  res =[]
-  start_date = date(int(startDate[0:4]),int(startDate[4:6]),int(startDate[6:8]))
-  end_date = date(int(endDate[0:4]),int(endDate[4:6]),int(endDate[6:8]))
-  #start_date = date(2019, 6, 1) 
-  #end_date = date(2021, 6, 2)    # perhaps date.now()
-  delta = end_date - start_date   # returns timedelta
-  for i in range(delta.days+1):
-    res.append((start_date+ timedelta(days=i)).strftime("%Y-%m-%d"))
-  return res
+from apps.utils import general_utils, nightlights_utils,download_button
+import plotly.tools as tls
 
 def add_ee_layer(self, ee_image_object, vis_params, name):
   map_id_dict = ee.Image(ee_image_object).getMapId(vis_params)
@@ -65,15 +21,21 @@ def add_ee_layer(self, ee_image_object, vis_params, name):
     overlay = True,
     control = True
   ).add_to(self)
-
 # Add EE drawing method to folium.
 leafmap.foliumap.Map.add_ee_layer = add_ee_layer
 
 
 
+@st.experimental_memo
+def convert_df(df):
+   return df.to_csv(index=False).encode('utf-8')
+    
+
+
+
 
 def app():
-    st.title("Nightlights")
+    st.title("Nightlight Activity")
     st.markdown(
     """
     Upload or Export a geojson for an area of interest (keep the size of the area reasonable) and see the nightlight
@@ -116,6 +78,8 @@ def app():
             data = st.file_uploader(
                 "Upload a vector dataset", type=["geojson", "kml", "zip", "tab"]
             )
+            functionality = st.selectbox(label='Analysis',options=['Map Visualization','Raw data & Plot'])
+            #newButton = st.form_submit_button(label="Testbutton")
             submitted = st.form_submit_button("Submit")
 
         if submitted:
@@ -123,80 +87,70 @@ def app():
             print(start_month,end_month)
 
             # Create date_range
-            startDate = str(start_year)+'-'+str(start_month)+"-01"
-            endDate = str(end_year)+"-"+str(end_month)+"-01"
-            months = pd.period_range(startDate, endDate, freq='M')
-            dates = list(months.strftime("%m-%Y"))
             
             if data:
-                file_path = save_uploaded_file(data, data.name)
+                file_path = general_utils.save_uploaded_file(data, data.name)
                 layer_name = os.path.splitext(data.name)[0]
-                
-
-
+            
                 print(file_path)
                 # Do the nightlights logic
                 with open(file_path,'r') as f:
                     geom = json.load(f)
-                    eegeom = getGeometry(geom)
+                    eegeom = general_utils.getGeometry(geom)
                 print(geom)
                 location = eegeom.centroid().coordinates().getInfo()[::-1]
-                m = leafmap.foliumap.Map(location=location, zoom_start=12)
-                for date in dates:
-                    # split date
-                    month = int(date.split("-")[0])
-                    year = int(date.split("-")[1])
-                    dataset =  ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG").\
-                                filterBounds(eegeom).\
-                                filter(ee.Filter.calendarRange(year,year, 'year')).\
-                                filter(ee.Filter.calendarRange(month, month, 'month'))
-               
-                    image = dataset.reduce(ee.Reducer.median()).select('avg_rad_median').clip(eegeom)
-                    m.add_ee_layer(image,visualization, str(month)+"-"+str(year))
+                
 
-            with row1_col1:
-                 m.add_child(folium.LayerControl())
-                 m.to_streamlit(height=700)
-            container = st.container()
+                m = leafmap.foliumap.Map(location=location, zoom_start=12)
+                
+
+                # Disable Temporarily
+                
+                startDate = str(start_year)+'-'+str(start_month)+"-01"
+                endDate = str(end_year)+"-"+str(end_month)+"-01"
+                months = pd.period_range(startDate, endDate, freq='M')
+                dates = list(months.strftime("%m-%Y"))
+                if functionality=='Map Visualization':
+                    for date in dates:
+                        # split date
+                        month = int(date.split("-")[0])
+                        year = int(date.split("-")[1])
+                        dataset =  ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG").\
+                                    filterBounds(eegeom).\
+                                    filter(ee.Filter.calendarRange(year,year, 'year')).\
+                                    filter(ee.Filter.calendarRange(month, month, 'month'))
+                
+                        image = dataset.reduce(ee.Reducer.median()).select('avg_rad_median').clip(eegeom)
+                        m.add_ee_layer(image,visualization, str(month)+"-"+str(year))
+                    with row1_col1:
+                        m.add_child(folium.LayerControl())
+                        m.to_streamlit(height=700)
+                else:
+                    
+                    dataFrame = nightlights_utils.getData(eegeom,start_year,start_month,end_year,end_month)
+                    #dataFrame = pd.read_csv('out.csv')
+                    plot = nightlights_utils.createPlot(dataFrame)
+                    
+                    
+                    first_column = dataFrame.pop('date')
+                    #print(first_column)
+                    dataFrame.insert(0,'date',first_column)
+                    dataFrame = dataFrame.reset_index(drop=True)
+                    #dataFrame = dataFrame.set_index('date')
+                    csv = convert_df(dataFrame)
+
+                    with row1_col1:
+                        
+                        st.plotly_chart(plot)
+                        st.dataframe(dataFrame, use_container_width=True)
+                        download_button_str = download_button.download_button(csv,"file.csv","Press To Download")
+                        st.markdown(download_button_str, unsafe_allow_html=True)
+                        #download_button.download_button(csv,"file.csv","Press To Download - No Streamlit")
+                    
+                
+            
+            
         else:
             with row1_col1:
                 m = leafmap.foliumap.Map(zoom_start=2,draw_export=True)
                 m.to_streamlit(height=700)
-
-
-
-    '''
-    with row1_col2:
-        #Init map
-        location = rethymno_geom.centroid().coordinates().getInfo()[::-1]
-        m = leafmap.foliumap.Map(location=location, zoom_start=12)
-        visualization = {
-            'min': 	0.5, # -15degress Celsius
-            'max': 	60.0, # 47degrees Celsius
-            'palette':['black','white']
-        }
-        vmin = visualization['min']
-        vmax = visualization['max']
-        
-        for month in range(1,13):
-            dataset =  ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG").\
-                        filterBounds(rethymno_geom).\
-                        filter(ee.Filter.calendarRange(2019, 2019, 'year')).\
-                        filter(ee.Filter.calendarRange(month, month, 'month'))
-
-            
-            image = dataset.reduce(ee.Reducer.median()).select('avg_rad_median').clip(rethymno_geom)
-            m.add_ee_layer(image,visualization, str(month)+"-2019")
-            #medianImageCollection.append(image) 
-
-        m.add_child(folium.LayerControl())
-        #ImageCollectionVis = ee.ImageCollection(medianImageCollection)
-        monthDict= {	'01':'January',		'02':'February',		'03':'March',		'04':'April',		'05':'May',		'06':'June',		'07':'July',		'08':'August',		'09':'September',		'10':'October',		'11':'November',		'12':'December'		}
-        
-
-        m.to_streamlit(height=700)
-    
-    with row1_col1:
-        m = leafmap.deck.Map()
-        st.pydeck_chart(m)
-    '''
