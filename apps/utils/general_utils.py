@@ -6,15 +6,24 @@ import pandas as pd
 import ee 
 from datetime import date, timedelta
 import datetime
+
+# Plot and Map visualization
+import folium
 import plotly.tools as tls
 import plotly.express as px
+
+# For automated-email service
+from smtplib import SMTP_SSL, SMTP_SSL_PORT
+from email.mime.multipart import MIMEMultipart, MIMEBase
+from email.mime.text import MIMEText
+from email.encoders import encode_base64
+
+
 
 def inBetween(startDate,endDate):
   res =[]
   start_date = date(int(startDate[0:4]),int(startDate[4:6]),int(startDate[6:8]))
   end_date = date(int(endDate[0:4]),int(endDate[4:6]),int(endDate[6:8]))
-  #start_date = date(2019, 6, 1) 
-  #end_date = date(2021, 6, 2)    # perhaps date.now()
   delta = end_date - start_date   # returns timedelta
   for i in range(delta.days+1):
     res.append((start_date+ timedelta(days=i)).strftime("%Y-%m-%d"))
@@ -53,6 +62,8 @@ def save_uploaded_file(file_content, file_name):
         file.write(file_content.getbuffer())
 
     return file_path
+
+
 def add_ee_layer(self, ee_image_object, vis_params, name):
   map_id_dict = ee.Image(ee_image_object).getMapId(vis_params)
   folium.raster_layers.TileLayer(

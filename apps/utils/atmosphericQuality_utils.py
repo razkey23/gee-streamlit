@@ -64,14 +64,17 @@ def getDataFrame(eegeom,start_year,start_month,end_year,end_month,frequency='Wee
     endDate = str(end_year)+"-"+str(end_month)+"-01"
     months = pd.period_range(startDate, endDate, freq=freq)
     dates = list(months.strftime("%Y-%m-%d"))
-    if len(metricsarg)*len(dates)>=12:
-        dates = dates[0:12//len(metricsarg)]
-    #if len(dates)>=30:dates=dates[0:29]
     
+    if len(metricsarg)*len(dates)>=12:
+        dates = dates[0:12]
+    #if len(dates)>=30:dates=dates[0:29]
+    print(dates)
     for index,metric in enumerate(metricsarg):
+        #print(metric)
         df=[]
         config = metrics[metric]
         for i in range(len(dates)-1):
+            print(dates[i],metric)
             month = int(dates[i].split("-")[1])
             year = int(dates[i].split("-")[0])
             day = int(dates[i].split("-")[2])

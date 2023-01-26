@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 .gitignore
+send_email.py
+temporary.csv
 __pycache__/
 *.py[cod]
 *$py.class

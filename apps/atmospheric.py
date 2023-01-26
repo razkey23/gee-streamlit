@@ -7,7 +7,7 @@ import leafmap
 import os
 import json
 import calendar
-from apps.utils import download_button,general_utils,atmospheric_utils
+from apps.utils import download_button,general_utils,atmosphericQuality_utils
 import pandas as pd
 import plotly.tools as tls
 import time
@@ -80,16 +80,16 @@ def app():
                     # Visualization
                     if function == 'Map Visualization':
                         #Visualize only first metric
-                        m = atmospheric_utils.mapVisualization(eegeom,start_year,start_month,end_year,end_month,frequency,metrics[0])
+                        m = atmosphericQuality_utils.mapVisualization(eegeom,start_year,start_month,end_year,end_month,frequency,metrics[0])
                     
                         with row1_col1:
                             m.add_child(folium.LayerControl())
                             m.to_streamlit(height=700)
                     else:
-                        dataframe = atmospheric_utils.getDataFrame(eegeom,start_year,start_month,end_year,end_month,frequency,metrics)
+                        dataframe = atmosphericQuality_utils.getDataFrame(eegeom,start_year,start_month,end_year,end_month,frequency,metrics)
                         #dataframe = pd.read_csv('temporary.csv')
                         dataframe.to_csv('temporary.csv')
-                        plot = atmospheric_utils.createPlot(dataframe,frequency)
+                        plot = atmosphericQuality_utils.createPlot(dataframe,frequency)
                         first_column = dataframe.pop('date')
                         #print(first_column)
                         dataframe.insert(0,'date',first_column)
